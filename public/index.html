@@ -28,15 +28,30 @@
 			net.makeLayers(layers_def);
 
 			var trainer = new convnetjs.Trainer(net, {learning_rate:0.01, l2_decay:0.001});
-			var x = new convnetjs.Vol(result.row[0].matrix);
-			console.log(x);
-			console.log(result.row[0].matrix);
-			var prob_vol = net.forward(x);
+			var x1 = new convnetjs.Vol(result.gestures[1][0].matrix);
+			var x2 = new convnetjs.Vol(result.gestures[1][1].matrix);
+			var y = new convnetjs.Vol(result.gestures[2][0].matrix);
+			var prob_vol;
+
+			/*
+			trainer.train(x1, 0);
+			trainer.train(x2, 0);
+			trainer.train(y, 1);			
+			*/
+
+			for (var i = 1; i < result.gestures.length; i++) {
+				for (var j = 0; j < result.gestures[i].length; j++) {
+					var x = new convnetjs.Vol(result.gestures[i][j].matrix);
+					trainer.train(x, i - 1);
+				}
+			}
+
+			prob_vol = net.forward(x1);
 			console.log(prob_vol);
-			trainer.train(x, 0);
-			prob_vol = net.forward(x);
+			prob_vol = net.forward(y);
 			console.log(prob_vol);
 		}
+		/*
 		var load = function () {
 			var xhttp = new XMLHttpRequest();
 			xhttp.onreadystatechange = function() {
@@ -48,6 +63,12 @@
 			xhttp.open("GET", "00_01_1_0.js", true);
 			xhttp.send();
 		};
+		*/
+		var load = function () {
+			result = localStorage.getItem("scc_715");
+			result = JSON.parse(result);
+			start();
+		}
 	</script>
 </head>
 

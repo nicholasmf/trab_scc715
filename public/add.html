@@ -1,0 +1,87 @@
+<html>
+<head>
+	<title>Add to database</title>
+	<meta charset="ISO-8859-1" />
+	<script>
+		function start() {
+			if (typeof(Storage) == "undefined") {  alert("LocalStorage not supported"); return; }
+			//localStorage.removeItem("scc_715");
+			if (!localStorage.getItem("scc_715")) {
+				var row = new Object();
+				row.gestures = new Array();
+				for (var i = 0; i < 3; i++) {
+					row.gestures.push(new Array());
+				}
+				console.log(row);
+				localStorage.setItem("scc_715", JSON.stringify(row));
+			}
+			exportJSON();
+		}
+		function show() {
+			var text = document.getElementsByTagName("textarea")[0].value;
+			var result = document.getElementsByTagName("textarea")[1];
+			var gesture = document.getElementsByTagName("input")[0].value;
+
+			var lines = text.split("\n");
+			var rows = lines[0].split(" ")[0];
+			var cols = lines[0].split(" ")[1];
+
+			var database = localStorage.getItem("scc_715");
+			database = JSON.parse(database);
+
+			console.log(lines);
+			result.value = "\t{\n";
+			result.value += "\t\"rows\":" + rows + ",\n";
+			result.value += "\t\"cols\":" + cols + ",\n";
+			result.value += "\t\"matrix\":[\n";
+
+			for (var i = 1; i < lines.length; i++) {
+				result.value += "\t\t";
+				for (j = 0; j < lines[i].length; j++) {
+					if (lines[i][j] == ",") result.value += ".";
+					else if (lines[i][j] == " ") result.value += ",";
+					else result.value += lines[i][j];
+				}
+				result.value += ",\n";
+			}
+			result.value = result.value.replace(/,\n$/, "]\n\t}");
+
+			var item = JSON.parse(result.value);
+			database.gestures[gesture].push(item);
+			localStorage.setItem("scc_715", JSON.stringify(database));
+		}
+		function undo() {
+			var gestid = document.getElementById("undo").value;
+			var database = localStorage.getItem("scc_715");
+			database = JSON.parse(database);
+			database.gestures[gestid].pop();
+			localStorage.setItem("scc_715", JSON.stringify(database));
+			console.log(database);
+		}
+		function exportJSON() {
+			var str = localStorage.getItem("scc_715");
+			var txtFile = "test.txt";
+			var file = new File([str], txtFile);
+
+			var dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(str);
+			var link = document.getElementById('link').href = dataUri; 
+		}
+		function importJSON() {
+			var json = document.getElementsByTagName("textarea")[0].value;
+			if (JSON.parse(json)) localStorage.setItem("scc_715", json);
+		}
+	</script>
+</head>
+
+<body onload="start()">
+	GestureID: <input type="text" /><br />
+	<textarea cols=110 rows=40></textarea>
+	<textarea cols=140 rows=40 readonly></textarea>
+	<input type="button" value="Save" onclick="show()" />
+	<a href='#' id="link" download="example.json">Export JSON</a>
+	<input type="button" value="Import JSON" onclick="importJSON()" />
+	<br /><br />
+	ID: <input type="text" id="undo" />
+	<input type="button" value="Undo" onclick="undo()" />
+</body>
+</html>
