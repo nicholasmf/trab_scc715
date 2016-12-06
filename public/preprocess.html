@@ -1,0 +1,70 @@
+<html>
+<head>
+	<title>minimal demo</title>
+	<meta charset="iso-8859-1" />
+	<script type="text/javascript">
+		var database;
+		var new_rows = 25;
+		var new_cols = 6;
+		function start() {
+			var txtarea = document.getElementsByTagName('textarea')[0];
+			txtarea.value = "";
+			var result = new Object();
+			result.gestures = new Array();
+			for (var i = 0; i < 3; i++) result.gestures.push(new Array());
+
+			for (var i = 1; i < database.gestures.length; i++) {
+				for (var j = 0; j < database.gestures[i].length; j++) {
+					result.gestures[i][j] = new Object();
+					result.gestures[i][j].rows = new_rows;
+					result.gestures[i][j].cols = new_cols;
+					result.gestures[i][j].matrix = new Array();
+					var matrix = database.gestures[i][j].matrix;
+					txtarea.value += "{\n";
+					var count = 0;
+					var rows = database.gestures[i][j].rows;
+					for (var k = 0; k < matrix.length; k++) {
+						if (Math.floor(Math.floor(k / 12) / rows * new_rows) == count) {
+							if (k % 12 == 0) txtarea.value += count + ":";
+							if (k % 12 > 5) {
+								result.gestures[i][j].matrix.push(matrix[k]);
+								txtarea.value += "\t" + matrix[k] + ", ";
+							}
+							if (k % 12 == 11) {
+								count++;
+								txtarea.value += "\n"; 
+							}
+						}
+					}
+					txtarea.value += "}\n";
+				}
+			}
+			console.log(result);
+			localStorage.setItem("pre", JSON.stringify(result));
+			/*
+			var a = document.createElement("a");
+			a.download = "pre.json";
+			a.href = "data:application/json;charset=utf-8," + JSON.stringify(result);
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			*/
+		}
+		var load = function () {
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+					database = JSON.parse(this.responseText);
+					start();
+				}
+			};
+			xhttp.open("GET", "example.json", true);
+			xhttp.send();
+		};
+	</script>
+</head>
+
+<body onload="load()">
+	<textarea cols=150 rows=40 ></textarea>
+</body>
+</html>

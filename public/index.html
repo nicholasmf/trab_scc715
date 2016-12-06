@@ -5,6 +5,7 @@
 	<script src="convnet-min.js"></script>
 	<script type="text/javascript">
 		var result;
+		var rows = 25, cols = 6;
 		function periodic() {
 			var d = document.getElementById("egdiv");
 			var rand1 = Math.random() * 2 - 1;
@@ -19,7 +20,7 @@
 		function start() {
 			var layers_def = [];
 
-			layers_def.push({type:"input", out_sx:27, out_sy:12, out_depth:1});
+			layers_def.push({type:"input", out_sx: rows, out_sy: cols, out_depth:1});
 			layers_def.push({type:"fc", num_neurons:20, activation:"relu"});
 			layers_def.push({type:"fc", num_neurons:20, activation:"relu"});
 			layers_def.push({type:"softmax", num_classes:2});
@@ -30,7 +31,7 @@
 			var trainer = new convnetjs.Trainer(net, {learning_rate:0.01, l2_decay:0.001});
 			var x1 = new convnetjs.Vol(result.gestures[1][0].matrix);
 			var x2 = new convnetjs.Vol(result.gestures[1][1].matrix);
-			var y = new convnetjs.Vol(result.gestures[2][0].matrix);
+			var y = new convnetjs.Vol(result.gestures[2][5].matrix);
 			var prob_vol;
 
 			/*
@@ -65,7 +66,7 @@
 		};
 		*/
 		var load = function () {
-			result = localStorage.getItem("scc_715");
+			result = localStorage.getItem("pre");
 			result = JSON.parse(result);
 			start();
 		}
