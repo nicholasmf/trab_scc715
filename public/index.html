@@ -6,6 +6,7 @@
 	<script type="text/javascript">
 		var result;
 		var rows = 25, cols = 6;
+		var N = 24;
 		function periodic() {
 			var d = document.getElementById("egdiv");
 			var rand1 = Math.random() * 2 - 1;
@@ -20,16 +21,19 @@
 		function start() {
 			var layers_def = [];
 
-			layers_def.push({type:"input", out_sx: rows, out_sy: cols, out_depth:1});
-			layers_def.push({type:"fc", num_neurons:20, activation:"relu"});
-			layers_def.push({type:"fc", num_neurons:20, activation:"relu"});
+			layers_def.push({type:"input", out_sx: N, out_sy: N, out_depth: N});
+			//layers_def.push({type:"conv", sx:5, filters:8, stride:1, pad:2, avtivation:"relu"});
+			//layers_def.push({type:"pool", sx:2, stride:2});
+			//layers_def.push({type:"conv", sx:5, filters:16, stride:1, pad:2, avtivation:"relu"});
+			//layers_def.push({type:"pool", sx:3, stride:3});
+			layers_def.push({type:'fc', num_neurons:20, activation:'relu'}); 
 			layers_def.push({type:"softmax", num_classes:2});
 
 			net = new convnetjs.Net();
 			net.makeLayers(layers_def);
 
-			var trainer = new convnetjs.Trainer(net, {learning_rate:0.01, l2_decay:0.001});
-			var x1 = new convnetjs.Vol(result.gestures[1][0].matrix);
+			var trainer = new convnetjs.Trainer(net, {learning_rate:0.03, l2_decay:0.001});
+			var x1 = new convnetjs.Vol(result.gestures[1][4].matrix);
 			var x2 = new convnetjs.Vol(result.gestures[1][1].matrix);
 			var y = new convnetjs.Vol(result.gestures[2][5].matrix);
 			var prob_vol;
@@ -66,7 +70,7 @@
 		};
 		*/
 		var load = function () {
-			result = localStorage.getItem("pre");
+			result = localStorage.getItem("matrix");
 			result = JSON.parse(result);
 			start();
 		}
