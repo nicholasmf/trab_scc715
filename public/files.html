@@ -1,0 +1,145 @@
+<html>
+<head>
+	<title>Add to database</title>
+	<meta charset="ISO-8859-1" />
+	<script>
+		var file;
+		var database_name = "scc_715_2";
+		var count_files = 0;
+		var filename = new Object();
+		filename.person = 0;
+		filename.gesture = 1;
+		filename.session = 1;
+		filename.record = 0;
+		function start() {
+			if (typeof(Storage) == "undefined") {  alert("LocalStorage not supported"); return; }
+			//localStorage.removeItem(database_name);
+			if (!localStorage.getItem(database_name)) {
+				var row = new Object();
+				row.gestures = new Array();
+				for (var i = 0; i < 3; i++) {
+					row.gestures.push(new Array());
+				}
+				console.log(row);
+				localStorage.setItem(database_name, JSON.stringify(row));
+			}
+			load();
+		}
+		function show() {
+			var text = file;
+			var textarea = document.getElementsByTagName("textarea")[0];
+			var result = document.getElementsByTagName("textarea")[1];
+			var gesture = filename.gesture;
+			var gest_input = document.getElementsByTagName("input")[0];
+
+			gest_input = gesture;
+			textarea.value = file;
+			var lines = text.split("\n");
+			var rows = lines[0].split(" ")[0];
+			var cols = lines[0].split(" ")[1];
+
+			var database = localStorage.getItem(database_name);
+			database = JSON.parse(database);
+
+			result.value = "\t{\n";
+			result.value += "\t\"rows\":" + rows + ",\n";
+			result.value += "\t\"cols\":" + cols + ",\n";
+			result.value += "\t\"matrix\":[\n";
+
+			for (var i = 1; i < lines.length - 1; i++) {
+				result.value += "\t\t";
+				for (j = 0; j < lines[i].length; j++) {
+					if (lines[i][j] == ",") result.value += ".";
+					else if (lines[i][j] == " ") {
+						result.value += ",";
+					}
+					else result.value += lines[i][j];
+				}
+				result.value += ",\n";
+			}
+			result.value = result.value.replace(/,\n$/, "]\n\t}");
+
+			var item = JSON.parse(result.value);
+			database.gestures[gesture].push(item);
+			localStorage.setItem(database_name, JSON.stringify(database));
+
+			// prepare next file
+			filename.record++;
+			if (filename.record == 10) {
+				filename.record = 0;
+				filename.session++;
+				if (filename.session == 6) {
+					filename.session = 1;
+					filename.gesture++;
+				}
+			}
+
+			load();
+		}
+		function undo() {
+			var gestid = document.getElementById("undo").value;
+			var database = localStorage.getItem(database_name);
+			database = JSON.parse(database);
+			database.gestures[gestid].pop();
+			localStorage.setItem(database_name, JSON.stringify(database));
+			console.log(database);
+		}
+		function exportJSON() {
+			var str = localStorage.getItem(database_name);
+			var txtFile = "test.txt";
+			var file = new File([str], txtFile);
+
+			var dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(str);
+			//window.location.href = dataUri;
+			var a = document.createElement("a");
+			a.download = "example.js";
+			a.href = dataUri;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			console.log(a);
+		}
+		function importJSON() {
+			var json = document.getElementsByTagName("textarea")[0].value;
+			if (JSON.parse(json)) localStorage.setItem(database_name, json);
+		}
+		function resetDatabase() {
+			localStorage.removeItem(database_name);
+		}
+		function load() {
+			if (filename.gesture < 3) {
+				count_files++;
+				console.log(count_files);
+				var xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function() {
+					if (this.readyState == 4 && this.status == 200) {
+						//file = JSON.parse(this.responseText);
+						//start();
+						file = this.responseText;
+						show();
+					}
+				};
+				var fn = filename.person < 10 ? "0" + filename.person : filename.person;
+				fn += "_" + (filename.gesture < 10 ? "0" + filename.gesture : filename.gesture);
+				fn += "_" + filename.session + "_" + filename.record;
+				console.log(fn);
+				xhttp.open("GET", "./dataset/" + fn + ".txt", true);
+				xhttp.send();
+			}
+		}
+	</script>
+</head>
+
+<body onload="start()">
+	GestureID: <input type="text" /><br />
+	<textarea cols=110 rows=40></textarea>
+	<textarea cols=140 rows=40 readonly></textarea>
+	<input type="button" value="Save" onclick="show()" />
+	<input type="button" value="Export JSON" onclick="exportJSON()" />
+	<input type="button" value="Import JSON" onclick="importJSON()" />
+	<input type="button" value="Reset Database" onclick="resetDatabase()" />
+	<br /><br />
+	ID: <input type="text" id="undo" />
+	<input type="button" value="Undo" onclick="undo()" />
+</body>
+</html>
