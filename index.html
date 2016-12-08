@@ -31,6 +31,7 @@
 
 			var rate = 10;
 			var ntrain = Math.floor(result.gestures[1].length / rate * (rate - 1));
+			var ntest = result.gestures[1].length - ntrain;
 			for (var i = 0; i < gest.length; i++) {
 				for (var j = 0; j < ntrain; j++) {
 					var x = new convnetjs.Vol(result.gestures[gest[i]][j].matrix);
@@ -50,18 +51,17 @@
 			}
 
 			// Mostra resultados
-			console.log(res);
 			egdiv.value = "Taxa de acerto:\n";
 			
 			var total = 0;
 			for (var i = 0; i < gest.length; i++) {
 				egdiv.value += "Gesto " + gest[i] + ": " + parseFloat(res[i] / (result.gestures[gest[i]].length / rate) * 100).toFixed(2) + "%\n";
 				total += res[i];
-				console.log((gest[i]) + ": " + res[i] / (result.gestures[gest[i]].length / rate));
+				//console.log((gest[i]) + ": " + res[i] / (result.gestures[gest[i]].length / rate));
 			}
-			egdiv.value += "total: " + parseFloat((total*100/ntrain)/16).toFixed(2) + "%";
+			egdiv.value += "total: " + parseFloat((total/gest.length) / (result.gestures[1].length / rate) * 100).toFixed(2) + "%";
 
-			delete gest;
+			gest = new Array();
 		}
 		
 		// Carrega o arquivo json de dados
@@ -80,10 +80,12 @@
 			xhttp.send();
 
 			// Pega o id dos gestos
-			var gests = document.getElementById("in_gests").getElementsByTagName("input");
-			for (var i = 0; i < gests.length; i++) {
-				if (!isNaN(gests[i].value) && gests[i].value != "") {
-					gest.push(gests[i].value);
+			if (gest.length == 0) {
+				var gests = document.getElementById("in_gests").getElementsByTagName("input");
+				for (var i = 0; i < gests.length; i++) {
+					if (!isNaN(gests[i].value) && gests[i].value != "") {
+						gest.push(gests[i].value);
+					}
 				}
 			}
 			// Pega os parametros
@@ -102,13 +104,6 @@
 			var count = div.getElementsByTagName("input").length;
 			div.innerHTML += "Gesture " + (count + 1) + ": <input type='text' /></br>";
 		}
-		/*
-		var load = function () {
-			result = localStorage.getItem("matrix_2");
-			result = JSON.parse(result);
-			start();
-		}
-		*/
 	</script>
 </head>
 
@@ -117,8 +112,8 @@
 		Gesture 1: <input type="text" id="gest1" /></br>
 		Gesture 2: <input type="text" id="gest2" /></br>
 	</div>
-	<input type="text" value=0.000005 id="lr_in" />
-	<input type="text" value=0.0001 id="ld_in" /></br>
+	Learning_rate: <input type="text" value=0.000005 id="lr_in" /></br>
+	l2_decay: <input type="text" value=0.0001 id="ld_in" /></br>
 	<input type="button" value="Add Gesture" onclick="add()" />
 	<input type="button" id="start" value="Start" onclick="load()" /></br>
 	<input type="button" value="Run all" onclick="runall()" /></br>
