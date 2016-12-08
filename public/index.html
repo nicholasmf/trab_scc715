@@ -4,19 +4,10 @@
 	<meta charset="iso-8859-1" />
 	<script src="convnet-min.js"></script>
 	<script type="text/javascript">
+		var in_database = "matrix_2";
 		var result;
 		var rows = 25, cols = 6;
-		var N = 24;
-		function periodic() {
-			var d = document.getElementById("egdiv");
-			var rand1 = Math.random() * 2 - 1;
-			var rand2 = Math.random() * 4 - 2;
-			var x = new convnetjs.Vol([rand1, rand2]);
-
-			var probability_volume = net.forward(x);
-			d.innerHTML = "Random number: " + rand1 + "  " + rand2 + ":" + probability_volume.w[0];
-		}
-
+		var N = 8;
 		var net;
 		function start() {
 			var layers_def = [];
@@ -32,10 +23,10 @@
 			net = new convnetjs.Net();
 			net.makeLayers(layers_def);
 
-			var trainer = new convnetjs.Trainer(net, {learning_rate:0.03, l2_decay:0.001});
-			var x1 = new convnetjs.Vol(result.gestures[1][4].matrix);
+			var trainer = new convnetjs.Trainer(net, {learning_rate:0.00001, l2_decay:0.0001});
+			var x1 = new convnetjs.Vol(result.gestures[1][result.gestures[1].length - 1].matrix);
 			var x2 = new convnetjs.Vol(result.gestures[1][1].matrix);
-			var y = new convnetjs.Vol(result.gestures[2][5].matrix);
+			var y = new convnetjs.Vol(result.gestures[2][result.gestures[2].length - 1].matrix);
 			var prob_vol;
 
 			/*
@@ -44,19 +35,37 @@
 			trainer.train(y, 1);			
 			*/
 
+			var ntrain = Math.floor(result.gestures[1].length / 10 * 9);
 			for (var i = 1; i < result.gestures.length; i++) {
-				for (var j = 0; j < result.gestures[i].length; j++) {
+				for (var j = 0; j < ntrain; j++) {
 					var x = new convnetjs.Vol(result.gestures[i][j].matrix);
 					trainer.train(x, i - 1);
 				}
 			}
 
+			var res = new Array();
+			for (var i = 1; i < result.gestures.length; i++) {
+				res[i] = 0;
+				for (var j = ntrain; j < result.gestures[i].length; j++) {
+					var x = new convnetjs.Vol(result.gestures[i][j].matrix);
+					prob_vol = net.forward(x);
+					if (prob_vol.w[i-1] > 0.5) res[i]++;
+				}
+			}
+
+			console.log(res);
+			for (var i = 1; i < result.gestures.length; i++) {
+				console.log((i - 1) + ": " + res[i] / (result.gestures[i].length / 10));
+			}
+
+			/*
 			prob_vol = net.forward(x1);
 			console.log(prob_vol);
 			prob_vol = net.forward(y);
 			console.log(prob_vol);
+			*/
 		}
-		/*
+		
 		var load = function () {
 			var xhttp = new XMLHttpRequest();
 			xhttp.onreadystatechange = function() {
@@ -65,15 +74,17 @@
 					start();
 				}
 			};
-			xhttp.open("GET", "00_01_1_0.js", true);
+			xhttp.open("GET", in_database + ".json", true);
 			xhttp.send();
 		};
-		*/
+		
+		/*
 		var load = function () {
-			result = localStorage.getItem("matrix");
+			result = localStorage.getItem("matrix_2");
 			result = JSON.parse(result);
 			start();
 		}
+		*/
 	</script>
 </head>
 
