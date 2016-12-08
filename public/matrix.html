@@ -8,6 +8,7 @@
 		var in_database = "scc_715_all";
 		var out_database = "matrix_all";
 
+		// Acha o maximo e minimo
 		function max_min(matrix) {
 			var res = new Object();
 			res.min = new Array();
@@ -38,20 +39,22 @@
 			return res;
 		}
 
+		// Extrai a matriz 8x8x8
 		function start() {
-			if (database == null) { localStorage.removeItem(out_database); return; }
+			if (database == null) {  return; }
 			var txtarea = document.getElementsByTagName('textarea')[0];
-			txtarea.value = "";
+			txtarea.value = "Começando construção das matrizes...";
+			// Inicialização do objeto de saida
 			var result = new Object();
 			result.gestures = new Array();
 			for (var i = 0; i < database.gestures.length; i++) result.gestures.push(new Array());
 
+			// Percorre matriz de entrada e gera a saida
 			for (var i = 1; i < database.gestures.length; i++) {
 				for (var j = 0; j < database.gestures[i].length; j++) {
 					result.gestures[i][j] = new Object();
 					result.gestures[i][j].rows = N;
 					result.gestures[i][j].cols = N;
-					//result.gestures[i][j].matrix = new Array();
 
 					// initialize 3D matrix
 					var res_mat = new Array();
@@ -59,29 +62,23 @@
 
 					var matrix = database.gestures[i][j].matrix;
 					var mm = max_min(matrix);
-					//txtarea.value += "{\n";
 					for (var k = 0; k < matrix.length; k+=3) {
-						//if (k % 12 == 0) txtarea.value += (k/12) + ":";
 						if (k % 12 > 5) {
+							// Obtem as coordenadas x,y,z
 							var pos_x = Math.floor((matrix[k] - mm.min[0]) / mm.diff[0] * (N - 1));
 							var pos_y = Math.floor((matrix[k + 1] - mm.min[1]) / mm.diff[1] * (N - 1));
 							var pos_z = Math.floor((matrix[k + 2] - mm.min[2]) / mm.diff[2] * (N - 1));
 
 							var pos = N*N*pos_x + N*pos_y + pos_z;
 							res_mat[pos]++;
-							//txtarea.value += "\t(" + pos_x + "," + pos_y + "," + pos_z + ")";
-						}
-						if (k % 12 == 9) {
-							//txtarea.value += "\n"; 
 						}
 					}
-					//txtarea.value += "}\n";
 					result.gestures[i][j].matrix = res_mat;
 				}
 			}
 			console.log(result);
-			//localStorage.setItem(out_database, JSON.stringify(result));
-			
+
+			// Download do arquivo json de saida
 			var a = document.createElement("a");
 			a.download = out_database + ".json";
 			a.href = "data:application/json;charset=utf-8," + JSON.stringify(result);
@@ -91,6 +88,7 @@
 			
 		}
 		
+		// Requisição de dados de entrada
 		var load = function () {
 			var xhttp = new XMLHttpRequest();
 			xhttp.onreadystatechange = function() {
@@ -102,15 +100,6 @@
 			xhttp.open("GET", in_database + ".json", true);
 			xhttp.send();
 		};
-		
-		/*
-		var load = function () {
-			database = localStorage.getItem(in_database);
-			database = JSON.parse(database);
-
-			start();
-		}
-		*/
 	</script>
 </head>
 
