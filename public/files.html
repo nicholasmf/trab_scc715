@@ -12,20 +12,9 @@
 		filename.gesture = 1;
 		filename.session = 1;
 		filename.record = 0;
+		// Initializations
 		function start() {
 			if (typeof(Storage) == "undefined") {  alert("LocalStorage not supported"); return; }
-			//localStorage.removeItem(database_name);
-			/*
-			if (!localStorage.getItem(database_name)) {
-				var row = new Object();
-				row.gestures = new Array();
-				for (var i = 0; i < 3; i++) {
-					row.gestures.push(new Array());
-				}
-				console.log(row);
-				localStorage.setItem(database_name, JSON.stringify(row));
-			}
-			*/
 			database.gestures = new Array();
 			for (var i = 0; i < 17; i++) {
 				database.gestures.push(new Array());
@@ -35,22 +24,17 @@
 		}
 		function show() {
 			var text = file;
-			var textarea = document.getElementsByTagName("textarea")[0];
-			//var result = document.getElementsByTagName("textarea")[1];
 			var gesture = filename.gesture;
 			var gest_input = document.getElementsByTagName("input")[0];
 
 			var result = {};
 			result.value = "";
 			gest_input.value = gesture;
-			//textarea.value = file;
 			var lines = text.split("\n");
 			var rows = lines[0].split(" ")[0];
 			var cols = lines[0].split(" ")[1];
 
-			//var database = localStorage.getItem(database_name);
-			//database = JSON.parse(database);
-
+			// Prepare json string
 			result.value = "\t{\n";
 			result.value += "\t\"rows\":" + rows + ",\n";
 			result.value += "\t\"cols\":" + cols + ",\n";
@@ -91,36 +75,8 @@
 
 			load();
 		}
-		function undo() {
-			var gestid = document.getElementById("undo").value;
-			var database = localStorage.getItem(database_name);
-			database = JSON.parse(database);
-			database.gestures[gestid].pop();
-			localStorage.setItem(database_name, JSON.stringify(database));
-			console.log(database);
-		}
-		function exportJSON() {
-			var str = localStorage.getItem(database_name);
-			var txtFile = "test.txt";
-			var file = new File([str], txtFile);
-
-			var dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(str);
-			//window.location.href = dataUri;
-			var a = document.createElement("a");
-			a.download = "example.js";
-			a.href = dataUri;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			console.log(a);
-		}
-		function importJSON() {
-			var json = document.getElementsByTagName("textarea")[0].value;
-			if (JSON.parse(json)) localStorage.setItem(database_name, json);
-		}
-		function resetDatabase() {
-			localStorage.removeItem(database_name);
-		}
+		
+		// Load json file
 		function load() {
 			if (filename.person < 23) {
 				count_files++;
@@ -134,6 +90,7 @@
 						show();
 					}
 				};
+				// Set next file name
 				var fn = filename.person < 10 ? "0" + filename.person : filename.person;
 				fn += "_" + (filename.gesture < 10 ? "0" + filename.gesture : filename.gesture);
 				fn += "_" + filename.session + "_" + filename.record;
@@ -156,14 +113,5 @@
 
 <body onload="start()">
 	GestureID: <input type="text" /><br />
-	<textarea cols=110 rows=40></textarea>
-	<textarea cols=140 rows=40 readonly></textarea>
-	<input type="button" value="Save" onclick="show()" />
-	<input type="button" value="Export JSON" onclick="exportJSON()" />
-	<input type="button" value="Import JSON" onclick="importJSON()" />
-	<input type="button" value="Reset Database" onclick="resetDatabase()" />
-	<br /><br />
-	ID: <input type="text" id="undo" />
-	<input type="button" value="Undo" onclick="undo()" />
 </body>
 </html>
