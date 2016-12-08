@@ -5,8 +5,8 @@
 	<script type="text/javascript">
 		var database;
 		var N = 8;
-		var in_database = "scc_715_2";
-		var out_database = "matrix_2";
+		var in_database = "scc_715_all";
+		var out_database = "matrix_all";
 
 		function max_min(matrix) {
 			var res = new Object();
@@ -44,7 +44,7 @@
 			txtarea.value = "";
 			var result = new Object();
 			result.gestures = new Array();
-			for (var i = 0; i < 3; i++) result.gestures.push(new Array());
+			for (var i = 0; i < database.gestures.length; i++) result.gestures.push(new Array());
 
 			for (var i = 1; i < database.gestures.length; i++) {
 				for (var j = 0; j < database.gestures[i].length; j++) {

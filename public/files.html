@@ -5,7 +5,7 @@
 	<script>
 		var file;
 		var database = new Object();
-		var database_name = "scc_715_2";
+		var database_name = "scc_715_all";
 		var count_files = 0;
 		var filename = new Object();
 		filename.person = 0;
@@ -27,7 +27,7 @@
 			}
 			*/
 			database.gestures = new Array();
-			for (var i = 0; i < 3; i++) {
+			for (var i = 0; i < 17; i++) {
 				database.gestures.push(new Array());
 			}
 			
@@ -37,7 +37,7 @@
 			var text = file;
 			var textarea = document.getElementsByTagName("textarea")[0];
 			//var result = document.getElementsByTagName("textarea")[1];
-			var gesture = filename.gesture == 1 ? 1 : 2;
+			var gesture = filename.gesture;
 			var gest_input = document.getElementsByTagName("input")[0];
 
 			var result = {};
@@ -80,8 +80,8 @@
 				filename.session++;
 				if (filename.session == 6) {
 					filename.session = 1;
-					filename.gesture += 5;
-					if (filename.gesture == 11) {
+					filename.gesture += 1;
+					if (filename.gesture == 17) {
 						filename.gesture = 1;
 						filename.person++;
 						if (filename.person == 1 || filename.person == 12 || filename.person == 16) filename.person++;
