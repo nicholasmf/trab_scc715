@@ -53,15 +53,20 @@
 			console.log(res);
 			egdiv.value = "Taxa de acerto:\n";
 			
+			var total = 0;
 			for (var i = 0; i < gest.length; i++) {
-				egdiv.value += "Gesto " + gest[i] + ": " + res[i] + "%\n";
+				egdiv.value += "Gesto " + gest[i] + ": " + parseFloat(res[i] / (result.gestures[gest[i]].length / rate) * 100).toFixed(2) + "%\n";
+				total += res[i];
 				console.log((gest[i]) + ": " + res[i] / (result.gestures[gest[i]].length / rate));
 			}
+			egdiv.value += "total: " + parseFloat((total*100/ntrain)/16).toFixed(2) + "%";
+
+			delete gest;
 		}
 		
 		// Carrega o arquivo json de dados
 		var load = function () {
-			gest = new Array();
+			//gest = new Array();
 			// Requisição AJAX para arquivo de dados
 			var xhttp = new XMLHttpRequest();
 			xhttp.onreadystatechange = function() {
@@ -85,6 +90,13 @@
 			lr = document.getElementById("lr_in").value;
 			ld = document.getElementById("ld_in").value;
 		};
+		function runall() {
+			gest = new Array();
+			for (var i = 1; i < 17; i++) {
+				gest.push(i);
+			}
+			load();
+		}
 		function add() {
 			var div = document.getElementById("in_gests");
 			var count = div.getElementsByTagName("input").length;
@@ -109,6 +121,7 @@
 	<input type="text" value=0.0001 id="ld_in" /></br>
 	<input type="button" value="Add Gesture" onclick="add()" />
 	<input type="button" id="start" value="Start" onclick="load()" /></br>
-	<textarea id='egdiv' readonly rows=8 cols=30></textarea>
+	<input type="button" value="Run all" onclick="runall()" /></br>
+	<textarea id='egdiv' readonly rows=20 cols=30></textarea>
 </body>
 </html>
