@@ -4,80 +4,92 @@
 	<meta charset="iso-8859-1" />
 	<script src="convnet-min.js"></script>
 	<script type="text/javascript">
-		var in_database = "matrix_2";
-		var result;
-		var rows = 25, cols = 6;
+		var in_database = "matrix_all";
+		var result, lr, ld;
 		var N = 8;
 		var net;
+		var gest = new Array();
+
+		// Configura e executa a rede neural
 		function start() {
+			// Definições de parametros da rede
 			var layers_def = [];
+			var egdiv = document.getElementById('egdiv');
 
 			layers_def.push({type:"input", out_sx: N, out_sy: N, out_depth: N});
-			//layers_def.push({type:"conv", sx:5, filters:8, stride:1, pad:2, avtivation:"relu"});
-			//layers_def.push({type:"pool", sx:2, stride:2});
-			//layers_def.push({type:"conv", sx:5, filters:16, stride:1, pad:2, avtivation:"relu"});
-			//layers_def.push({type:"pool", sx:3, stride:3});
-			layers_def.push({type:'fc', num_neurons:20, activation:'relu'}); 
-			layers_def.push({type:"softmax", num_classes:2});
+			layers_def.push({type:'fc', num_neurons:15, activation:'relu'}); 
+			layers_def.push({type:"softmax", num_classes:gest.length});
 
+			// Cria rede
 			net = new convnetjs.Net();
 			net.makeLayers(layers_def);
 
-			var trainer = new convnetjs.Trainer(net, {learning_rate:0.00001, l2_decay:0.0001});
-			var x1 = new convnetjs.Vol(result.gestures[1][result.gestures[1].length - 1].matrix);
-			var x2 = new convnetjs.Vol(result.gestures[1][1].matrix);
-			var y = new convnetjs.Vol(result.gestures[2][result.gestures[2].length - 1].matrix);
+			// Treinamento da rede
+			var trainer = new convnetjs.Trainer(net, {learning_rate:lr, l2_decay:ld});
+			//var trainer = new convnetjs.Trainer(net, {learning_rate:0.000005, l2_decay:0.0001});
 			var prob_vol;
 
-			/*
-			trainer.train(x1, 0);
-			trainer.train(x2, 0);
-			trainer.train(y, 1);			
-			*/
-
-			var ntrain = Math.floor(result.gestures[1].length / 10 * 9);
-			for (var i = 1; i < result.gestures.length; i++) {
+			var rate = 10;
+			var ntrain = Math.floor(result.gestures[1].length / rate * (rate - 1));
+			for (var i = 0; i < gest.length; i++) {
 				for (var j = 0; j < ntrain; j++) {
-					var x = new convnetjs.Vol(result.gestures[i][j].matrix);
-					trainer.train(x, i - 1);
+					var x = new convnetjs.Vol(result.gestures[gest[i]][j].matrix);
+					trainer.train(x, i);
 				}
 			}
 
+			// Executa os testes
 			var res = new Array();
-			for (var i = 1; i < result.gestures.length; i++) {
+			for (var i = 0; i < gest.length; i++) {
 				res[i] = 0;
-				for (var j = ntrain; j < result.gestures[i].length; j++) {
-					var x = new convnetjs.Vol(result.gestures[i][j].matrix);
+				for (var j = ntrain; j < result.gestures[gest[i]].length; j++) {
+					var x = new convnetjs.Vol(result.gestures[gest[i]][j].matrix);
 					prob_vol = net.forward(x);
-					if (prob_vol.w[i-1] > 0.5) res[i]++;
+					if (prob_vol.w[i] > (1/gest.length)) res[i]++;
 				}
 			}
 
+			// Mostra resultados
 			console.log(res);
-			for (var i = 1; i < result.gestures.length; i++) {
-				console.log((i - 1) + ": " + res[i] / (result.gestures[i].length / 10));
+			egdiv.value = "Taxa de acerto:\n";
+			
+			for (var i = 0; i < gest.length; i++) {
+				egdiv.value += "Gesto " + gest[i] + ": " + res[i] + "%\n";
+				console.log((gest[i]) + ": " + res[i] / (result.gestures[gest[i]].length / rate));
 			}
-
-			/*
-			prob_vol = net.forward(x1);
-			console.log(prob_vol);
-			prob_vol = net.forward(y);
-			console.log(prob_vol);
-			*/
 		}
 		
+		// Carrega o arquivo json de dados
 		var load = function () {
+			gest = new Array();
+			// Requisição AJAX para arquivo de dados
 			var xhttp = new XMLHttpRequest();
 			xhttp.onreadystatechange = function() {
 				if (this.readyState == 4 && this.status == 200) {
 					result = JSON.parse(this.responseText);
-					start();
+					if (!isNaN(gest[0]) && !isNaN(gest[1]))
+						start();
 				}
 			};
 			xhttp.open("GET", in_database + ".json", true);
 			xhttp.send();
+
+			// Pega o id dos gestos
+			var gests = document.getElementById("in_gests").getElementsByTagName("input");
+			for (var i = 0; i < gests.length; i++) {
+				if (!isNaN(gests[i].value) && gests[i].value != "") {
+					gest.push(gests[i].value);
+				}
+			}
+			// Pega os parametros
+			lr = document.getElementById("lr_in").value;
+			ld = document.getElementById("ld_in").value;
 		};
-		
+		function add() {
+			var div = document.getElementById("in_gests");
+			var count = div.getElementsByTagName("input").length;
+			div.innerHTML += "Gesture " + (count + 1) + ": <input type='text' /></br>";
+		}
 		/*
 		var load = function () {
 			result = localStorage.getItem("matrix_2");
@@ -88,7 +100,15 @@
 	</script>
 </head>
 
-<body onload="load()">
-	<div id="egdiv"></div>
+<body>
+	<div id="in_gests">
+		Gesture 1: <input type="text" id="gest1" /></br>
+		Gesture 2: <input type="text" id="gest2" /></br>
+	</div>
+	<input type="text" value=0.000005 id="lr_in" />
+	<input type="text" value=0.0001 id="ld_in" /></br>
+	<input type="button" value="Add Gesture" onclick="add()" />
+	<input type="button" id="start" value="Start" onclick="load()" /></br>
+	<textarea id='egdiv' readonly rows=8 cols=30></textarea>
 </body>
 </html>
